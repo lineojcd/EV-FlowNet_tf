@@ -8,11 +8,15 @@ def configs():
                         help="Path to data directory.",
                         # default='../data/mvsec_data/')
                         default='/Users/jcd/PythonProjects/mydataset_event/')
+    parser.add_argument('--root',
+                        type=str,
+                        help="Path to data directory.",
+                        default='/Users/jcd/PythonProjects/EV-FlowNet_tf/')
     parser.add_argument('--load_path',
                         type=str,
                         help="Path to saved model.",
-                        default='../data/log/saver/')
-                        # default='/Users/jcd/PythonProjects/mydataset_event/data/log/saver/')
+                        # default='../data/log/saver/')
+                        default='/Users/jcd/PythonProjects/EV-FlowNet_tf/data/log/saver/')
     parser.add_argument('--training_instance',
                         type=str,
                         help="Specific saved model to load. A new one will be generated if empty.",
@@ -59,7 +63,17 @@ def configs():
     parser.add_argument('--test_sequence',
                         type=str,
                         help="Name of the test sequence.",
-                        default='outdoor_day1')
+                        default='IMG_4372_480P_wood')
+                        # default='outdoor_day1')
+    parser.add_argument('--test_output_instance',
+                        type=str,
+                        help="Path to save the test output instance folder.",
+                        default='IMG_4372_480P_wood')
+                        # default='outdoor_day1')
+    parser.add_argument('--test_output_folder',
+                        type=str,
+                        help="Path to save the test output.",
+                        default='test_output')
     parser.add_argument('--gt_path',
                         type=str,
                         help='Path to optical flow ground truth npz file.',

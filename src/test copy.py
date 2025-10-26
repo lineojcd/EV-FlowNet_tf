@@ -23,10 +23,17 @@ def drawImageTitle(img, title):
                 bottomLeftOrigin=False)
     return img
 
-def test(sess,args,event_image_loader,prev_image_loader,next_image_loader,timestamp_loader):
+def test(sess,
+         args,
+         event_image_loader,
+         prev_image_loader,
+         next_image_loader,
+         timestamp_loader):
     global_step = tf.compat.v1.train.get_or_create_global_step()
     with tf.compat.v1.variable_scope('vs'):
-        flow_dict = model(event_image_loader,is_training=False,do_batch_norm=not args.no_batch_norm)
+        flow_dict = model(event_image_loader,
+                            is_training=False,
+                            do_batch_norm=not args.no_batch_norm)
     
     event_image = tf.reduce_sum(event_image_loader[:, :, :, :2], axis=-1, keepdims=True)
     flow_rgb, flow_norm, flow_ang_rad = flow_viz_tf(flow_dict['flow3'])
@@ -69,7 +76,11 @@ def test(sess,args,event_image_loader,prev_image_loader,next_image_loader,timest
     while not coord.should_stop():
         start_time = time.time()
         try:
-            flow_dict_np,prev_image,next_image,event_image,image_timestamps = sess.run([flow_dict,
+            flow_dict_np,\
+                prev_image,\
+                next_image,\
+                event_image,\
+                image_timestamps = sess.run([flow_dict,
                                              prev_image_loader,
                                              next_image_loader,
                                              event_image_loader,
@@ -94,7 +105,11 @@ def test(sess,args,event_image_loader,prev_image_loader,next_image_loader,timest
             event_image_list.append(event_count_image)
         
         if args.gt_path:
-            U_gt, V_gt = estimate_corresponding_gt_flow(U_gt_all, V_gt_all,gt_timestamps,image_timestamps[0][0],image_timestamps[0][1])
+            U_gt, V_gt = estimate_corresponding_gt_flow(U_gt_all, V_gt_all,
+                                                        gt_timestamps,
+                                                        image_timestamps[0][0],
+                                                        image_timestamps[0][1])
+            
             gt_flow = np.stack((U_gt, V_gt), axis=2)
 
             if args.save_test_output:
@@ -112,7 +127,10 @@ def test(sess,args,event_image_loader,prev_image_loader,next_image_loader,timest
             gt_flow = gt_flow[yoff:-yoff, xoff:-xoff, :]       
         
             # Calculate flow error.
-            AEE, percent_AEE, n_points = flow_error_dense(gt_flow, pred_flow, event_count_image,'outdoor' in args.test_sequence)
+            AEE, percent_AEE, n_points = flow_error_dense(gt_flow, 
+                                                          pred_flow, 
+                                                          event_count_image,
+                                                          'outdoor' in args.test_sequence)
             AEE_list.append(AEE)
             AEE_sum += AEE
             percent_AEE_sum += percent_AEE
@@ -149,16 +167,6 @@ def test(sess,args,event_image_loader,prev_image_loader,next_image_loader,timest
 
             prev_image = drawImageTitle(prev_image, 'Grayscale Image')
             
-            
-            output_dir = os.path.join(args.root, args.test_output_folder)
-            test_output_instance = os.path.join(output_dir, args.test_output_instance)
-            if not os.path.exists(test_output_instance):
-                os.makedirs(test_output_instance)
-            cv2.imwrite(os.path.join(test_output_instance, f'flow{iters:04d}.png'), pred_flow_rgb)
-            cv2.imwrite(os.path.join(test_output_instance, f'Timestamp{iters:04d}.png'), event_time_image)
-            cv2.imwrite(os.path.join(test_output_instance, f'Count{iters:04d}.png'), event_count_image)
-            cv2.imwrite(os.path.join(test_output_instance, f'Grayscale{iters:04d}.png'), prev_image)
-            
             gt_flow_rgb = np.zeros(pred_flow_rgb.shape)
             errors = np.zeros(pred_flow_rgb.shape)
 
@@ -194,25 +202,20 @@ def test(sess,args,event_image_loader,prev_image_loader,next_image_loader,timest
     if args.save_test_output:
         if args.gt_path:
             print('Saving data to {}_output_gt.npz'.format(args.test_sequence))
-            # np.savez('{}_output_gt.npz'.format(args.test_sequence),
-            np.savez(os.path.join(test_output_instance, '{}_output.npz'.format(args.test_sequence)),
+            np.savez('{}_output_gt.npz'.format(args.test_sequence),
                      output_flows=np.stack(output_flow_list, axis=0),
                      gt_flows=np.stack(gt_flow_list, axis=0),
                      event_images=np.stack(event_image_list, axis=0))
         else:
-            
             print('Saving data to {}_output.npz'.format(args.test_sequence))
-            np.savez(os.path.join(test_output_instance, '{}_output.npz'.format(args.test_sequence)),
+            np.savez('{}_output.npz'.format(args.test_sequence),
                      output_flows=np.stack(output_flow_list, axis=0),
                      event_images=np.stack(event_image_list, axis=0))
 
     coord.request_stop()
-    
-    
 
 def main():        
     args = configs()
-    print("args.load_path:", args.load_path)
     args.load_path = tf.train.latest_checkpoint(os.path.join(args.load_path,args.training_instance))
     if not args.load_path:
         raise Exception("You need to set `load_path` and `training_instance`.")
